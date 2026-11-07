@@ -8,6 +8,7 @@ import Folha from '../componentes/Folha'
 import { GatoAlmofada, GatoPrancheta } from '../componentes/Gatinhos'
 import { Icone, nomeIconeArea } from '../lib/icones'
 import { infoPadrao } from '../lib/areasPadrao'
+import { quantosPrecisam } from '../lib/cuidados'
 import { alertas, conflitosDoDia, itensDoDia, metasDaSemana, pendenciasDaArea } from '../lib/agenda'
 import { dataCurta, dataLonga, hojeISO } from '../lib/datas'
 import type { Area } from '../lib/tipos'
@@ -18,7 +19,7 @@ function saudacao() {
 }
 
 export default function Inicio() {
-  const { nome, areas, atividades, ocorrencias, erro, carregando, marcarOcorrencia } = useApp()
+  const { nome, areas, atividades, ocorrencias, cuidados, erro, carregando, marcarOcorrencia } = useApp()
   const { abrirForm } = useForm()
   const [verAlertas, setVerAlertas] = useState(false)
   const hoje = hojeISO()
@@ -88,7 +89,7 @@ export default function Inicio() {
       <section aria-label="Minhas áreas" className="flex flex-col gap-3">
         <div className="grid grid-cols-3 gap-3">
           {grandes.map((a) => (
-            <CartaoAreaGrande key={a.id} area={a} n={pendenciasDaArea(a.id, hoje, atividades, ocorrencias)} />
+            <CartaoAreaGrande key={a.id} area={a} n={pendenciasDaArea(a.id, hoje, atividades, ocorrencias) + quantosPrecisam(cuidados, a.id, hoje)} />
           ))}
         </div>
         <div className="grid grid-cols-4 gap-3">

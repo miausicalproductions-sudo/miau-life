@@ -76,7 +76,11 @@ Você **não precisa instalar nada** no computador. São 4 partes: **Supabase** 
 
 ## O que vem depois
 
-**Etapa 2:** atividades dos 4 tipos, calendário geral, metas da semana e alerta de conflito.
+**Etapa 2 (pronta):** atividades dos 4 tipos, calendário geral, metas da semana e alerta de conflito.
+
+**Etapa 3 (pronta):** telas de *Casa & Organização* (cuidados por cômodo + lista de compras) e *Pessoal* (skincare, cabelo, unhas, corpo). Rode `supabase/etapa3.sql` no Supabase antes de subir os arquivos.
+
+**Próximas:** 4 Estudos + Trabalho · 5 Miau IA · 6 Pets · 7 Financeiro · 8 Vida Fit · 9 Fazenda · 10 Viagens + Projetos · 11 Integrações (Google Agenda, lembretes, cópia em planilha, offline).
 
 ---
 *Para o futuro: este projeto usa React + TypeScript + Vite + Tailwind + Supabase. Você não precisa mexer nisso.*

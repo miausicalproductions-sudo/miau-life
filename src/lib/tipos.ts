@@ -48,3 +48,25 @@ export interface Ocorrencia {
 }
 
 export type EstadoOcorrencia = 'planejada' | 'feita' | null
+
+/** Um cuidado que se repete: limpar a geladeira a cada 30 dias, hidratação a cada 7... */
+export interface Cuidado {
+  id: string
+  area_id: string | null
+  grupo: string // cômodo (Casa) ou tipo de cuidado (Pessoal)
+  nome: string
+  frequencia_dias: number
+  ultima_em: string | null // YYYY-MM-DD da última vez
+  anterior_em: string | null // guarda o valor anterior para poder desfazer
+  ativo: boolean
+  created_at: string
+}
+export type NovoCuidado = Pick<Cuidado, 'nome' | 'grupo' | 'frequencia_dias'> & Partial<Pick<Cuidado, 'area_id' | 'ultima_em'>>
+
+export interface ItemLista {
+  id: string
+  area_id: string | null
+  nome: string
+  feito: boolean
+  created_at: string
+}

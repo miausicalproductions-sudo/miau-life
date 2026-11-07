@@ -6,6 +6,9 @@ import { useForm } from '../componentes/ContextoForm'
 import ItemCartao from '../componentes/ItemCartao'
 import { Icone, nomeIconeArea } from '../lib/icones'
 import { infoPadrao } from '../lib/areasPadrao'
+import { configDaArea } from '../lib/sugestoes'
+import Cuidados from '../componentes/Cuidados'
+import ListaCompras from '../componentes/ListaCompras'
 import { ativa, itensDoDia, metasDaSemana, type ItemDia } from '../lib/agenda'
 import { hojeISO, somarDias } from '../lib/datas'
 
@@ -29,6 +32,10 @@ export default function PaginaArea() {
     [atividades, ocorrencias, id, hoje],
   )
   const rotinas = atividades.filter((a) => ativa(a) && a.area_id === id && a.tipo === 'rotina')
+  const rotinasHoje = useMemo(
+    () => itensDoDia(hoje, atividades.filter((a) => a.area_id === id), ocorrencias).filter((i) => i.categoria === 'rotina'),
+    [atividades, ocorrencias, id, hoje],
+  )
 
   if (!area) {
     return (
@@ -39,6 +46,7 @@ export default function PaginaArea() {
     )
   }
   const info = infoPadrao(area.chave)
+  const config = configDaArea(area.chave)
 
   return (
     <div className="flex flex-col gap-4">
@@ -52,9 +60,18 @@ export default function PaginaArea() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <button className="btn" onClick={() => abrirForm({ areaId: area.id })}><Plus size={18} /> Nova atividade</button>
+        <button className="btn whitespace-nowrap" onClick={() => abrirForm({ areaId: area.id })}><Plus size={18} /> Nova atividade</button>
         <Link to={`/agenda?vista=mes&area=${area.id}`} className="btn btn-suave no-underline"><CalendarDays size={18} /> Calendário</Link>
       </div>
+
+      {config && <Cuidados area={area} config={config} />}
+
+      {rotinasHoje.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="m-0 text-lg font-semibold text-titulo">Rotinas de hoje</h2>
+          {rotinasHoje.map((i) => <ItemCartao key={i.chave} item={i} aoAbrir={() => abrirForm({ editar: i.atividade })} />)}
+        </section>
+      )}
 
       {metas.length > 0 && (
         <section className="cartao p-4">
@@ -79,9 +96,11 @@ export default function PaginaArea() {
         )}
       </section>
 
+      {area.chave === 'casa' && <ListaCompras area={area} />}
+
       {rotinas.length > 0 && (
         <section className="cartao p-4">
-          <h2 className="m-0 mb-2 text-lg font-semibold text-titulo">Rotinas</h2>
+          <h2 className="m-0 mb-2 text-lg font-semibold text-titulo">Todas as rotinas</h2>
           <ul className="m-0 list-none p-0">
             {rotinas.map((r) => (
               <li key={r.id} className="py-1 font-bold">{r.titulo}</li>
@@ -90,6 +109,7 @@ export default function PaginaArea() {
         </section>
       )}
 
+      {!config && (
       <div className="cartao flex items-start gap-3 p-4 text-sm text-suave">
         <Construction size={22} className="mt-0.5 shrink-0 text-titulo" />
         <span>
@@ -98,6 +118,7 @@ export default function PaginaArea() {
             : 'Esta é uma área só sua. Suas atividades já funcionam aqui.'}
         </span>
       </div>
+      )}
     </div>
   )
 }

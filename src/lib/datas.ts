@@ -52,3 +52,8 @@ export const dataCurta = (s: string) => {
   const d = parseISO(s)
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
 }
+
+/** Quantos dias de `a` até `b` (positivo se b é depois de a). */
+export function diasEntre(a: string, b: string): number {
+  return Math.round((parseISO(b).getTime() - parseISO(a).getTime()) / 86400000)
+}

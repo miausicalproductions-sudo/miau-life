@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import { areasDeFabrica } from './areasPadrao'
-import type { Area, Atividade, EstadoOcorrencia, NovaAtividade, Ocorrencia } from './tipos'
+import type { Area, Atividade, Cuidado, EstadoOcorrencia, ItemLista, NovaAtividade, NovoCuidado, Ocorrencia } from './tipos'
 
 // Camada única de dados: com Supabase grava na nuvem; sem Supabase (modo demonstração)
 // grava só no aparelho. O resto do app não precisa saber a diferença.
@@ -171,3 +171,84 @@ export async function definirOcorrencia(atividadeId: string, dia: string, estado
 
 /** "Anotar rápido": guarda na Caixa de entrada para classificar depois. */
 export const anotarNaCaixa = (titulo: string) => criarAtividade({ titulo, tipo: 'caixa' })
+
+// ---------- Cuidados (limpeza da casa, autocuidado...) ----------
+
+export async function listarCuidados(): Promise<Cuidado[]> {
+  if (supabase) {
+    const { data, error } = await supabase.from('cuidados').select('*').order('created_at')
+    if (error) throw error
+    return (data ?? []) as Cuidado[]
+  }
+  return ler<Cuidado>('cuidados')
+}
+
+export async function criarCuidados(novos: NovoCuidado[]): Promise<void> {
+  if (novos.length === 0) return
+  const linhas = novos.map((n) => ({ area_id: null, ultima_em: null, anterior_em: null, ativo: true, ...n }))
+  if (supabase) {
+    const { error } = await supabase.from('cuidados').insert(linhas)
+    if (error) throw error
+    return
+  }
+  const criados = linhas.map((l) => ({ ...l, id: novoId(), created_at: agora() }))
+  gravar('cuidados', [...ler<Cuidado>('cuidados'), ...criados])
+}
+
+export async function atualizarCuidado(id: string, p: Partial<Cuidado>): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.from('cuidados').update(p).eq('id', id)
+    if (error) throw error
+    return
+  }
+  gravar('cuidados', ler<Cuidado>('cuidados').map((x) => (x.id === id ? { ...x, ...p } : x)))
+}
+
+/** Só depois de confirmação explícita. */
+export async function excluirCuidado(id: string): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.from('cuidados').delete().eq('id', id)
+    if (error) throw error
+    return
+  }
+  gravar('cuidados', ler<Cuidado>('cuidados').filter((x) => x.id !== id))
+}
+
+// ---------- Lista de compras / reposição ----------
+
+export async function listarItensLista(): Promise<ItemLista[]> {
+  if (supabase) {
+    const { data, error } = await supabase.from('itens_lista').select('*').order('created_at')
+    if (error) throw error
+    return (data ?? []) as ItemLista[]
+  }
+  return ler<ItemLista>('lista')
+}
+
+export async function criarItemLista(areaId: string | null, nome: string): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.from('itens_lista').insert({ area_id: areaId, nome, feito: false })
+    if (error) throw error
+    return
+  }
+  gravar('lista', [...ler<ItemLista>('lista'), { id: novoId(), area_id: areaId, nome, feito: false, created_at: agora() }])
+}
+
+export async function atualizarItemLista(id: string, p: Partial<ItemLista>): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase.from('itens_lista').update(p).eq('id', id)
+    if (error) throw error
+    return
+  }
+  gravar('lista', ler<ItemLista>('lista').map((x) => (x.id === id ? { ...x, ...p } : x)))
+}
+
+export async function excluirItensLista(ids: string[]): Promise<void> {
+  if (ids.length === 0) return
+  if (supabase) {
+    const { error } = await supabase.from('itens_lista').delete().in('id', ids)
+    if (error) throw error
+    return
+  }
+  gravar('lista', ler<ItemLista>('lista').filter((x) => !ids.includes(x.id)))
+}
