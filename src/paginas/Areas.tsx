@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ArrowDown, ArrowUp, Pencil, Plus, Settings } from 'lucide-react'
 import { useApp } from '../lib/ContextoApp'
 import { criarArea, salvarArea } from '../lib/dados'
-import { CORES, ICONES } from '../lib/areasPadrao'
+import { CORES } from '../lib/areasPadrao'
+import { Icone, NOMES_ICONES, nomeIconeArea } from '../lib/icones'
+import Folha from '../componentes/Folha'
 import type { Area, CorNome } from '../lib/tipos'
 
 type Edicao = { modo: 'nova' } | { modo: 'editar'; area: Area }
@@ -21,8 +24,11 @@ export default function Areas() {
     const b = ativas[i + delta]
     if (!a || !b) return
     try {
-      await salvarArea({ ...a, posicao: b.posicao })
-      await salvarArea({ ...b, posicao: a.posicao })
+      // troca as posições; se estiverem iguais, usa a ordem da lista
+      const pa = delta === -1 ? i - 1 : i + 1
+      const pb = i
+      await salvarArea({ ...a, posicao: pa })
+      await salvarArea({ ...b, posicao: pb })
       await recarregar()
     } catch {
       setErro('Não consegui mudar a ordem agora.')
@@ -40,38 +46,43 @@ export default function Areas() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="m-0 text-3xl font-extrabold">Áreas</h1>
-        <button className="btn" onClick={() => setEdicao({ modo: 'nova' })}>＋ Nova área</button>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="m-0 text-2xl font-semibold text-titulo">Áreas</h1>
+        <div className="flex items-center gap-2">
+          <button className="btn !min-h-11" onClick={() => setEdicao({ modo: 'nova' })}><Plus size={18} /> Nova área</button>
+          <Link to="/ajustes" aria-label="Ajustes" className="cartao grid h-11 w-11 place-items-center !rounded-full" style={{ color: 'inherit' }}>
+            <Settings size={20} />
+          </Link>
+        </div>
       </div>
-      <p className="m-0 text-suave">Mude nome, cor, ícone e ordem do jeito que combinar com a sua vida.</p>
-      {erro && <p className="rounded-2xl bg-pessego/60 px-4 py-3 text-sm">{erro}</p>}
+      <p className="m-0 text-sm text-suave">Mude nome, cor, ícone e ordem do jeito que combinar com a sua vida. As primeiras seis aparecem grandes no Início.</p>
+      {erro && <p className="m-0 rounded-2xl bg-pessego/60 px-4 py-3 text-sm">{erro}</p>}
 
       <ul className="m-0 flex list-none flex-col gap-3 p-0">
         {ativas.map((a, i) => (
-          <li key={a.id} className={`cartao-area cor-${a.cor} flex items-center gap-3 p-3 pr-2`}>
+          <li key={a.id} className={`cartao-area cor-${a.cor} flex items-center gap-2 p-3 pr-2`}>
             <Link to={`/area/${a.id}`} className="flex flex-1 items-center gap-3 no-underline" style={{ color: 'inherit' }}>
-              <span className="bolinha grid h-12 w-12 place-items-center rounded-2xl text-2xl">{a.icone}</span>
-              <span className="font-extrabold">{a.nome}</span>
+              <span className="bolinha icone-forte grid h-12 w-12 place-items-center rounded-2xl"><Icone nome={nomeIconeArea(a)} size={26} /></span>
+              <span className="font-display text-lg font-semibold">{a.nome}</span>
             </Link>
-            <button aria-label="Subir" disabled={i === 0} onClick={() => mover(i, -1)} className="h-10 w-9 disabled:opacity-25">↑</button>
-            <button aria-label="Descer" disabled={i === ativas.length - 1} onClick={() => mover(i, 1)} className="h-10 w-9 disabled:opacity-25">↓</button>
-            <button aria-label={`Editar ${a.nome}`} onClick={() => setEdicao({ modo: 'editar', area: a })} className="h-10 w-10 text-lg">✏️</button>
+            <button aria-label={`Subir ${a.nome}`} disabled={i === 0} onClick={() => mover(i, -1)} className="grid h-10 w-9 place-items-center border-0 bg-transparent disabled:opacity-25"><ArrowUp size={18} /></button>
+            <button aria-label={`Descer ${a.nome}`} disabled={i === ativas.length - 1} onClick={() => mover(i, 1)} className="grid h-10 w-9 place-items-center border-0 bg-transparent disabled:opacity-25"><ArrowDown size={18} /></button>
+            <button aria-label={`Editar ${a.nome}`} onClick={() => setEdicao({ modo: 'editar', area: a })} className="grid h-10 w-10 place-items-center border-0 bg-transparent"><Pencil size={19} /></button>
           </li>
         ))}
       </ul>
 
       {arquivadas.length > 0 && (
         <div>
-          <button className="text-sm font-bold text-suave" onClick={() => setVerArquivadas(!verArquivadas)}>
+          <button className="border-0 bg-transparent p-0 text-sm font-bold text-suave" onClick={() => setVerArquivadas(!verArquivadas)}>
             {verArquivadas ? 'Esconder' : 'Mostrar'} arquivadas ({arquivadas.length})
           </button>
           {verArquivadas && (
             <ul className="m-0 mt-3 flex list-none flex-col gap-2 p-0">
               {arquivadas.map((a) => (
                 <li key={a.id} className="cartao flex items-center gap-3 p-3 opacity-80">
-                  <span className="text-2xl">{a.icone}</span>
+                  <Icone nome={nomeIconeArea(a)} size={24} />
                   <span className="flex-1 font-bold">{a.nome}</span>
                   <button className="btn btn-suave !min-h-10 !px-4 text-sm" onClick={() => arquivar(a, false)}>Restaurar</button>
                 </li>
@@ -105,7 +116,7 @@ function Editor({
 }) {
   const existente = edicao.modo === 'editar' ? edicao.area : null
   const [nome, setNome] = useState(existente?.nome ?? '')
-  const [icone, setIcone] = useState(existente?.icone ?? '🎀')
+  const [icone, setIcone] = useState(existente ? nomeIconeArea(existente) : 'star')
   const [cor, setCor] = useState<CorNome>(existente?.cor ?? 'rosa')
   const [erro, setErro] = useState<string | null>(null)
   const [salvando, setSalvando] = useState(false)
@@ -125,17 +136,17 @@ function Editor({
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/30 md:items-center" onClick={aoFechar}>
-      <form onSubmit={salvar} onClick={(e) => e.stopPropagation()} className="folha cartao barra-baixo max-h-[92vh] w-full max-w-md overflow-y-auto rounded-b-none p-5 md:rounded-b-3xl">
-        <div className="mb-4 text-lg font-extrabold">{existente ? 'Editar área' : 'Nova área'}</div>
-
+    <Folha titulo={existente ? 'Editar área' : 'Nova área'} aoFechar={aoFechar}>
+      <form onSubmit={salvar}>
         <label className="rotulo" htmlFor="nome-area">Nome</label>
         <input id="nome-area" className="campo mb-4" value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex.: Artesanato" autoFocus />
 
         <span className="rotulo">Ícone</span>
         <div className="mb-4 grid grid-cols-8 gap-1">
-          {ICONES.map((i) => (
-            <button type="button" key={i} onClick={() => setIcone(i)} className={`h-10 rounded-xl text-xl ${icone === i ? 'bg-rosa/60 ring-2 ring-destaque' : ''}`}>{i}</button>
+          {NOMES_ICONES.map((i) => (
+            <button type="button" key={i} aria-label={i} aria-pressed={icone === i} onClick={() => setIcone(i)} className={`grid h-10 place-items-center rounded-xl border-0 ${icone === i ? 'bg-rosa/60 ring-2 ring-destaque' : 'bg-transparent'}`}>
+              <Icone nome={i} size={22} />
+            </button>
           ))}
         </div>
 
@@ -148,7 +159,7 @@ function Editor({
               aria-label={c.nome}
               aria-pressed={cor === c.id}
               onClick={() => setCor(c.id)}
-              className={`cor-${c.id} h-10 w-10 rounded-full ${cor === c.id ? 'ring-2 ring-destaque ring-offset-2' : ''}`}
+              className={`cor-${c.id} h-10 w-10 rounded-full border-0 ${cor === c.id ? 'ring-2 ring-destaque ring-offset-2' : ''}`}
               style={{ background: 'var(--cor)' }}
             />
           ))}
@@ -160,11 +171,11 @@ function Editor({
           <button className="btn flex-1" disabled={salvando || !nome.trim()}>Salvar</button>
         </div>
         {existente && (
-          <button type="button" className="mt-4 w-full text-sm font-bold text-suave" onClick={() => aoArquivar(existente)}>
+          <button type="button" className="mt-4 w-full border-0 bg-transparent text-sm font-bold text-suave" onClick={() => aoArquivar(existente)}>
             Arquivar esta área
           </button>
         )}
       </form>
-    </div>
+    </Folha>
   )
 }

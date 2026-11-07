@@ -76,6 +76,7 @@ function traduz(m: string) {
   if (/already registered|already been registered/i.test(m)) return 'Esse e-mail já tem conta. Use “Entrar”.'
   if (/signups? not allowed|signup is disabled/i.test(m)) return 'Novas contas estão desativadas. Entre com a sua conta.'
   if (/password/i.test(m)) return 'A senha precisa ter pelo menos 6 caracteres.'
+  if (/email signups are disabled|email provider/i.test(m)) return 'O login por e-mail está desligado no Supabase. Ligue em Authentication → Sign In / Providers → Email.'
   if (/email not confirmed/i.test(m)) return 'Confirme seu e-mail (veja a caixa de entrada) e tente de novo.'
   return m
 }

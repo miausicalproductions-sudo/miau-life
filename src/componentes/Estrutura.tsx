@@ -1,38 +1,50 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { NavLink } from 'react-router-dom'
+import { CalendarDays, ChartColumn, Cat, House, Plus, Settings, SquareCheckBig } from 'lucide-react'
 import { useApp } from '../lib/ContextoApp'
-import AnotarRapido from './AnotarRapido'
+import { Icone, nomeIconeArea } from '../lib/icones'
+import { ProvedorForm, useForm } from './ContextoForm'
+import { GatoRosto } from './Gatinhos'
 
 const itens = [
-  { to: '/', rotulo: 'Início', emoji: '🏠' },
-  { to: '/calendario', rotulo: 'Calendário', emoji: '📅' },
-  { to: '/ia', rotulo: 'Miau IA', emoji: '🐱' },
-  { to: '/areas', rotulo: 'Áreas', emoji: '🗂️' },
+  { to: '/', rotulo: 'Início', Icone: House },
+  { to: '/agenda', rotulo: 'Agenda', Icone: CalendarDays },
+  { to: '/tarefas', rotulo: 'Tarefas', Icone: SquareCheckBig },
+  { to: '/evolucao', rotulo: 'Evolução', Icone: ChartColumn },
+  { to: '/ia', rotulo: 'Miau IA', Icone: Cat },
 ]
 
 function classeLink({ isActive }: { isActive: boolean }) {
-  return `flex items-center gap-3 rounded-2xl px-4 py-3 font-bold ${isActive ? 'bg-rosa/50' : 'hover:bg-rosa/20'}`
+  return `flex items-center gap-3 rounded-2xl px-4 py-3 font-bold no-underline ${isActive ? 'bg-rosa/50' : 'hover:bg-rosa/20'}`
 }
 
 export default function Estrutura({ children }: { children: ReactNode }) {
-  const [anotando, setAnotando] = useState(false)
+  return (
+    <ProvedorForm>
+      <Casca>{children}</Casca>
+    </ProvedorForm>
+  )
+}
+
+function Casca({ children }: { children: ReactNode }) {
   const { areas } = useApp()
+  const { abrirForm } = useForm()
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[260px_1fr]">
       {/* Menu lateral: aparece no computador */}
       <aside className="sticky top-0 hidden h-screen flex-col gap-1 overflow-y-auto border-r border-borda p-5 md:flex">
-        <div className="mb-4 flex items-center gap-3 text-xl font-extrabold">
-          <img src={`${import.meta.env.BASE_URL}icons/gatinho.svg`} alt="" className="h-10 w-10" />
-          Miau Life
+        <div className="mb-4 flex items-center gap-2">
+          <GatoRosto className="h-12 w-14" olhos="feliz" />
+          <span className="titulo-miau text-2xl">Miau Life</span>
         </div>
-        <button className="btn mb-3" onClick={() => setAnotando(true)}>
-          🐾 Anotar rápido
+        <button className="btn mb-3" onClick={() => abrirForm()}>
+          <Plus size={20} /> Nova atividade
         </button>
-        {itens.map((i) => (
-          <NavLink key={i.to} to={i.to} end={i.to === '/'} className={classeLink}>
-            <span>{i.emoji}</span>
-            {i.rotulo}
+        {itens.map(({ to, rotulo, Icone: I }) => (
+          <NavLink key={to} to={to} end={to === '/'} className={classeLink}>
+            <I size={22} />
+            {rotulo}
           </NavLink>
         ))}
         <div className="mt-4 px-4 text-xs font-extrabold uppercase tracking-wide text-suave">Minhas áreas</div>
@@ -40,54 +52,44 @@ export default function Estrutura({ children }: { children: ReactNode }) {
           .filter((a) => !a.arquivada)
           .map((a) => (
             <NavLink key={a.id} to={`/area/${a.id}`} className={classeLink}>
-              <span>{a.icone}</span>
+              <Icone nome={nomeIconeArea(a)} size={22} />
               {a.nome}
             </NavLink>
           ))}
-        <div className="mt-auto pt-4">
+        <div className="mt-auto flex flex-col gap-1 pt-4">
+          <NavLink to="/areas" className={classeLink}>
+            <Plus size={22} /> Mais áreas
+          </NavLink>
           <NavLink to="/ajustes" className={classeLink}>
-            <span>⚙️</span>Ajustes
+            <Settings size={22} /> Ajustes
           </NavLink>
         </div>
       </aside>
 
-      <main className="mx-auto w-full max-w-3xl px-4 pb-32 pt-[calc(1.5rem+env(safe-area-inset-top))] md:px-8 md:pb-12">{children}</main>
+      <main className="mx-auto w-full max-w-3xl px-4 pb-40 pt-[calc(1rem+env(safe-area-inset-top))] md:px-8 md:pb-24">{children}</main>
+
+      <button className="fab" onClick={() => abrirForm()} aria-label="Nova atividade">
+        <Plus size={30} strokeWidth={3} />
+      </button>
 
       {/* Barra de baixo: aparece no celular */}
-      <nav className="barra-baixo fixed inset-x-0 bottom-0 z-20 border-t border-borda bg-fundo/95 backdrop-blur md:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-5 items-end px-2 pb-2 pt-2">
-          {[itens[0], itens[1]].map((i) => (
-            <Aba key={i.to} {...i} />
-          ))}
-          <button
-            onClick={() => setAnotando(true)}
-            aria-label="Anotar rápido"
-            className="-mt-6 mb-1 grid h-16 w-16 place-items-center justify-self-center rounded-full bg-rosa text-3xl shadow-lg"
-          >
-            🐾
-          </button>
-          {[itens[2], itens[3]].map((i) => (
-            <Aba key={i.to} {...i} />
+      <nav className="barra-baixo fixed inset-x-0 bottom-0 z-30 border-t border-borda bg-fundo/95 backdrop-blur md:hidden" aria-label="Menu principal">
+        <div className="mx-auto grid max-w-md grid-cols-5 gap-1 px-2 pb-2 pt-2">
+          {itens.map(({ to, rotulo, Icone: I }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-0.5 rounded-2xl py-1.5 text-[11px] font-bold no-underline ${isActive ? 'bg-rosa/45 text-titulo' : 'text-suave'}`
+              }
+            >
+              <I size={24} />
+              {rotulo}
+            </NavLink>
           ))}
         </div>
       </nav>
-
-      {anotando && <AnotarRapido aoFechar={() => setAnotando(false)} />}
     </div>
-  )
-}
-
-function Aba({ to, rotulo, emoji }: { to: string; rotulo: string; emoji: string }) {
-  return (
-    <NavLink
-      to={to}
-      end={to === '/'}
-      className={({ isActive }) =>
-        `flex flex-col items-center gap-0.5 rounded-2xl py-1 text-[11px] font-bold ${isActive ? 'text-destaque' : 'text-suave'}`
-      }
-    >
-      <span className="text-2xl leading-none">{emoji}</span>
-      {rotulo}
-    </NavLink>
   )
 }

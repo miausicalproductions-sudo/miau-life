@@ -1,10 +1,15 @@
 import { useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { X } from 'lucide-react'
 import { useApp } from './lib/ContextoApp'
 import { modoDemo } from './lib/supabase'
 import Estrutura from './componentes/Estrutura'
+import { GatoRosto } from './componentes/Gatinhos'
 import Login from './paginas/Login'
 import Inicio from './paginas/Inicio'
+import Agenda from './paginas/Agenda'
+import Tarefas from './paginas/Tarefas'
+import Evolucao from './paginas/Evolucao'
 import Areas from './paginas/Areas'
 import PaginaArea from './paginas/PaginaArea'
 import EmBreve from './paginas/EmBreve'
@@ -15,7 +20,11 @@ export default function App() {
   const [aviso, setAviso] = useState(true)
 
   if (carregandoSessao) {
-    return <div className="grid min-h-screen place-items-center text-4xl">🐾</div>
+    return (
+      <div className="grid min-h-screen place-items-center">
+        <GatoRosto className="pulinho h-24 w-32" olhos="feliz" />
+      </div>
+    )
   }
   if (!modoDemo && !sessao) return <Login />
 
@@ -26,32 +35,25 @@ export default function App() {
           <span>
             <b>Modo demonstração:</b> o Supabase ainda não foi conectado, então o que você anotar fica só neste aparelho.
           </span>
-          <button className="ml-auto font-bold" onClick={() => setAviso(false)} aria-label="Fechar aviso">
-            ✕
+          <button className="ml-auto border-0 bg-transparent" onClick={() => setAviso(false)} aria-label="Fechar aviso">
+            <X size={18} />
           </button>
         </div>
       )}
       <Routes>
         <Route path="/" element={<Inicio />} />
-        <Route
-          path="/calendario"
-          element={
-            <EmBreve
-              emoji="📅"
-              titulo="Calendário geral"
-              etapa="Etapa 2"
-              texto="Aqui você verá compromissos com presença e tarefas com prazo ou dia marcado, com alerta de conflito. As tarefas flexíveis ficam fora, em uma lista de metas da semana."
-            />
-          }
-        />
+        <Route path="/agenda" element={<Agenda />} />
+        <Route path="/calendario" element={<Navigate to="/agenda" replace />} />
+        <Route path="/tarefas" element={<Tarefas />} />
+        <Route path="/evolucao" element={<Evolucao />} />
         <Route
           path="/ia"
           element={
             <EmBreve
-              emoji="🐱"
+              icone={<GatoRosto className="h-28 w-40" olhos="abertos" />}
               titulo="Miau IA"
               etapa="Etapa 5"
-              texto="Sua assistente pessoal. Ela vai sugerir e organizar, mas só muda algo depois do seu “sim”."
+              texto="Sua assistente pessoal. Ela vai sugerir e organizar a sua semana, mas só muda algo depois do seu “sim”."
             />
           }
         />
